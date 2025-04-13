@@ -1,10 +1,17 @@
+import numpy as np
+
 # Note: A typical tracker design implements a dedicated filter class for keeping the individual state of each track
 # The filter class represents the current state of the track (predicted position, size, velocity) as well as additional information (track age, class, missing updates, etc..)
 # The filter class is also responsible for assigning a unique ID to each newly formed track
 class Filter:
-    def __init__(self, z, cls):
-        # TODO: Implement filter initializstion
-        pass
+    def __init__(self, z, cls, track_id):
+        self.id = track_id
+        self.position = z # → [x, y, w, h]
+        self.last_position = self.position.copy()
+        self.object_class = cls # → (ball: 0, player: 2,..)
+        self.age = 1            # → since how many frames does the track exist ?
+        self.missing_frames = 0 # → since how many frames is the track not detectable ?
+        self.velocity = np.array([0.0, 0.0])  # → position change per frame |new postion - old position|
         
     # TODO: Implement remaining funtionality for an individual track
     
