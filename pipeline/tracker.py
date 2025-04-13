@@ -36,6 +36,10 @@ class Filter:
         self.missing_frames += 1
         self.age += 1
 
+    def should_delete(self, max_missing_frames = 5): #returns True when self.missing_frames > max_missing_frames
+        if self.missing_frames > max_missing_frames:
+            return True
+        return False
 
 
 class Tracker:
