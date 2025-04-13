@@ -25,7 +25,19 @@ class Filter:
         self.age += 1
 
 
-        
+    def no_update (self):  #if no detection accured
+        new_position_predicted = [self.position[0]+self.velocity[0], #x and y change
+                                  self.position[1]+self.velocity[1],
+                                  self.position[2],                  #width and hight remain the same
+                                  self.position[3]
+                                  ]
+        self.last_position = self.position
+        self.position = new_position_predicted
+        self.missing_frames += 1
+        self.age += 1
+
+
+
 class Tracker:
     def __init__(self):
         self.name = "Tracker" # Do not change the name of the module as otherwise recording replay would break!
