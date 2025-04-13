@@ -15,7 +15,17 @@ class Filter:
         
     # TODO: Implement remaining funtionality for an individual track
     
-    
+    def update (self, z_new):  #if detection
+        self.last_position = self.position
+        self.position = z_new
+        self.velocity = np.array(self.position[:2]) - np.array(self.last_position[:2])
+                        #with numpy it is more effiecient for later calculations but it is exactly the same as: 
+                        #[self.position[0] - self.last_position[0], self.position[1] - self.last_position[1]]
+        self.missing_frames = 0
+        self.age += 1
+
+
+        
 class Tracker:
     def __init__(self):
         self.name = "Tracker" # Do not change the name of the module as otherwise recording replay would break!
