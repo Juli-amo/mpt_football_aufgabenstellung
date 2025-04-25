@@ -21,7 +21,23 @@ class ShirtClassifier:
         tracks = data["tracks"]
         track_classes = data.get("trackClasses", [])
 
-        # TODO: Implement processing of a current frame list
+        
+        return { "teamAColor": None,
+                 "teamBColor": None,
+                 "teamClasses": None }
+        
+        if len(tracks) == 0 or len(track_classes) == 0:
+                return {
+                  "teamAColor": (0, 0, 0),
+                  "teamBColor": (0, 0, 0),
+                  "teamClasses": []
+              }
+                
+                
+                
+                
+                
+# TODO: Implement processing of a current frame list
         # The task of the shirt classifier module is to identify the two teams based on their shirt color and to assign each player to one of the two teams
 
         # Note: You can access data["image"] and data["tracks"] to receive the current image as well as the current track list
@@ -32,6 +48,3 @@ class ShirtClassifier:
         #           0: Team not decided or not a player (e.g. ball, goal keeper, referee)
         #           1: Player belongs to team A
         #           2: Player belongs to team B
-        return { "teamAColor": None,
-                 "teamBColor": None,
-                 "teamClasses": None }
