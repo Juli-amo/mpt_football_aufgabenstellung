@@ -9,7 +9,7 @@ class ShirtClassifier:
         self.initialized = False
 
     def start(self, data):
-        # TODO: Implement start up procedure of the module
+        self.initialized = False # TODO: Implement start up procedure of the module
         pass
 
     def stop(self, data):
