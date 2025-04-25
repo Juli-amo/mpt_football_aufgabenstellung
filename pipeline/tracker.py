@@ -53,4 +53,3 @@ class Tracker:
             "trackClasses": None,
             "trackIds": None
         }
-
