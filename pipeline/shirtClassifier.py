@@ -9,14 +9,18 @@ class ShirtClassifier:
         self.initialized = False
 
     def start(self, data):
-        self.initialized = False # TODO: Implement start up procedure of the module
-        pass
+        self.initialized = False 
+        #pass
 
     def stop(self, data):
         # TODO: Implement shut down procedure of the module
         pass
 
     def step(self, data):
+        image = data["image"]
+        tracks = data["tracks"]
+        track_classes = data.get("trackClasses", [])
+
         # TODO: Implement processing of a current frame list
         # The task of the shirt classifier module is to identify the two teams based on their shirt color and to assign each player to one of the two teams
 
