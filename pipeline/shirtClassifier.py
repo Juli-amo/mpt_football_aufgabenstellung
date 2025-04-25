@@ -22,9 +22,6 @@ class ShirtClassifier:
         track_classes = data.get("trackClasses", [])
 
         
-        return { "teamAColor": None,
-                 "teamBColor": None,
-                 "teamClasses": None }
         
         if len(tracks) == 0 or len(track_classes) == 0:
                 return {
@@ -48,3 +45,8 @@ class ShirtClassifier:
         #           0: Team not decided or not a player (e.g. ball, goal keeper, referee)
         #           1: Player belongs to team A
         #           2: Player belongs to team B
+        
+        return { "teamAColor": None,
+                 "teamBColor": None,
+                 "teamClasses": None }
+        
