@@ -1,6 +1,9 @@
 class ShirtClassifier:
     def __init__(self):
         self.name = "Shirt Classifier" # Do not change the name of the module as otherwise recording replay would break!
+        self.teamA_color = None
+        self.teamB_color = None
+        self.initialized = False
 
     def start(self, data):
         # TODO: Implement start up procedure of the module
