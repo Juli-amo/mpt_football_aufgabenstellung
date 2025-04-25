@@ -13,7 +13,6 @@ class Filter:
         self.missing_frames = 0 # → since how many frames is the track not detectable ?
         self.velocity = np.array([0.0, 0.0])  # → position change per frame |new postion - old position|
         
-    # TODO: Implement remaining funtionality for an individual track
     
     def update (self, z_new):  #if detection
         self.last_position = self.position
