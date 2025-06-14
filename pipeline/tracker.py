@@ -111,6 +111,14 @@ class Filter:
                 new_track_list.append(f)
         self.tracks = new_track_list
 
+        for j, z in enumerate(detections):
+            if j in matched_detections:
+                continue
+            f = Filter(z, int(det_classes[j]), self.next_id)
+            self.next_id += 1
+            self.tracks.append(f)
+
+
 
             
             pass
