@@ -74,6 +74,12 @@ class Filter:
             return np.linalg.norm(np.array(p) - np.array(q))
         
         def step(self, data):
+            detections = data.get("detections", np.empty((0, 4), np.float32))
+            det_classes = data.get("classes", np.empty((0,), np.int32))
+            N = len(self.tracks)
+            M = len(detections)
+            MAX_DIST = 300.0
+
             pass
 
 
