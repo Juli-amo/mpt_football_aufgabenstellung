@@ -103,6 +103,15 @@ class Filter:
             matched_detections.add(c)
             self.tracks[r].object_class = int(det_classes[c])
 
+        new_track_list = []
+        for idx, f in enumerate(self.tracks):
+            if idx not in matched_tracks:
+                f.no_update()
+            if not f.should_delete():
+                new_track_list.append(f)
+        self.tracks = new_track_list
+
+
             
             pass
 
