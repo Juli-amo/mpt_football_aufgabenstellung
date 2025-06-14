@@ -17,6 +17,7 @@ import numpy as np
             
 
 
+from scipy.optimize import linear_sum_assignment
 
 class Filter:
     def __init__(self, z, cls, track_id):
@@ -56,88 +57,88 @@ class Filter:
         return False
 
 
-    class Tracker:
+class Tracker:
 
-        def __init__(self):
-            self.name = "Tracker"
-            self.tracks = []
-            self.next_id = 0
+    def __init__(self):
+        self.name = "Tracker"
+        self.tracks = []
+        self.next_id = 0
 
-        def start(self, data):
-            self.tracks = []
-            self.next_id = 0
+    def start(self, data):
+        self.tracks = []
+        self.next_id = 0
 
-        def stop(self, data):
-            pass
+    def stop(self, data):
+        pass
 
-        def _distance(self, p, q):
-            return np.linalg.norm(np.array(p) - np.array(q))
+    def _distance(self, p, q):
+        return np.linalg.norm(np.array(p) - np.array(q))
         
-        def step(self, data):
-            detections = data.get("detections", np.empty((0, 4), np.float32))
-            det_classes = data.get("classes", np.empty((0,), np.int32))
-            N = len(self.tracks)
-            M = len(detections)
-            MAX_DIST = 300.0
+    def step(self, data):
+        detections = data.get("detections", np.empty((0, 4), np.float32))
+        det_classes = data.get("classes", np.empty((0,), np.int32))
+        N = len(self.tracks)
+        M = len(detections)
+        MAX_DIST = 300.0
 
-            if N and M:
-                cost = np.zeros((N, M), dtype=np.float32)
-                for i, f in enumerate(self.tracks):
-                    p = f.position[:2]
-                    for j, z in enumerate(detections):
-                        q = z[:2]
-                        dist = self._distance(p, q)
-                        cost[i, j] = dist if dist < MAX_DIST else 1e6
-                row_ind, col_ind = linear_sum_assignment(cost)
-            else:
-                cost = np.empty((0, 0), dtype=np.float32)
-                row_ind, col_ind = np.array([], dtype=int), np.array([], dtype=int)
+        if N and M:
+            cost = np.zeros((N, M), dtype=np.float32)
+            for i, f in enumerate(self.tracks):
+                p = f.position[:2]
+                for j, z in enumerate(detections):
+                    q = z[:2]
+                    dist = self._distance(p, q)
+                    cost[i, j] = dist if dist < MAX_DIST else 1e6
+            row_ind, col_ind = linear_sum_assignment(cost)
+        else:
+            cost = np.empty((0, 0), dtype=np.float32)
+            row_ind, col_ind = np.array([], dtype=int), np.array([], dtype=int)
 
-            matched_tracks = set()
-            matched_detections = set()
-            for r, c in zip(row_ind, col_ind):
-                if cost[r, c] >= 1e6:
-                    continue
-                self.tracks[r].update(detections[c])
-                matched_tracks.add(r)
-                matched_detections.add(c)
-                self.tracks[r].object_class = int(det_classes[c])
+        matched_tracks = set()
+        matched_detections = set()
+        for r, c in zip(row_ind, col_ind):
+            if cost[r, c] >= 1e6:
+                continue
+            self.tracks[r].update(detections[c])
+            matched_tracks.add(r)
+            matched_detections.add(c)
+            self.tracks[r].object_class = int(det_classes[c])
 
-            new_track_list = []
-            for idx, f in enumerate(self.tracks):
-                if idx not in matched_tracks:
-                    f.no_update()
-                if not f.should_delete():
-                    new_track_list.append(f)
-            self.tracks = new_track_list
+        new_track_list = []
+        for idx, f in enumerate(self.tracks):
+            if idx not in matched_tracks:
+                f.no_update()
+            if not f.should_delete():
+                new_track_list.append(f)
+        self.tracks = new_track_list
 
-            for j, z in enumerate(detections):
-                if j in matched_detections:
-                    continue
-                f = Filter(z, int(det_classes[j]), self.next_id)
-                self.next_id += 1
-                self.tracks.append(f)
+        for j, z in enumerate(detections):
+            if j in matched_detections:
+                continue
+            f = Filter(z, int(det_classes[j]), self.next_id)
+            self.next_id += 1
+            self.tracks.append(f)
 
-            positions   = np.array([f.position for f in self.tracks], dtype=np.float32)
-            velocities  = np.array([f.velocity for f in self.tracks], dtype=np.float32)
-            ages        = [f.age for f in self.tracks]
-            classes_out = [f.object_class for f in self.tracks]
-            ids         = [f.id for f in self.tracks]
+        positions   = np.array([f.position for f in self.tracks], dtype=np.float32)
+        velocities  = np.array([f.velocity for f in self.tracks], dtype=np.float32)
+        ages        = [f.age for f in self.tracks]
+        classes_out = [f.object_class for f in self.tracks]
+        ids         = [f.id for f in self.tracks]
 
-            return {
-                "tracks":          positions,
-                "trackVelocities": velocities,
-                "trackAge":        ages,
-                "trackClasses":    classes_out,
-                "trackIds":        ids
-            }
+        return {
+            "tracks":          positions,
+            "trackVelocities": velocities,
+            "trackAge":        ages,
+            "trackClasses":    classes_out,
+            "trackIds":        ids
+        }
 
 
 
 
 
             
-            pass
+        pass
 
 
 
