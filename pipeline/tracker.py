@@ -80,6 +80,19 @@ class Filter:
             M = len(detections)
             MAX_DIST = 300.0
 
+            if N and M:
+                cost = np.zeros((N, M), dtype=np.float32)
+                for i, f in enumerate(self.tracks):
+                    p = f.position[:2]
+                    for j, z in enumerate(detections):
+                        q = z[:2]
+                        dist = self._distance(p, q)
+                        cost[i, j] = dist if dist < MAX_DIST else 1e6
+                row_ind, col_ind = linear_sum_assignment(cost)
+            else:
+                cost = np.empty((0, 0), dtype=np.float32)
+                row_ind, col_ind = np.array([], dtype=int), np.array([], dtype=int)
+            
             pass
 
 
