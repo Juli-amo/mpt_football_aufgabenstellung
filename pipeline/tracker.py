@@ -98,39 +98,39 @@ class Filter:
             for r, c in zip(row_ind, col_ind):
                 if cost[r, c] >= 1e6:
                     continue
-            self.tracks[r].update(detections[c])
-            matched_tracks.add(r)
-            matched_detections.add(c)
-            self.tracks[r].object_class = int(det_classes[c])
+                self.tracks[r].update(detections[c])
+                matched_tracks.add(r)
+                matched_detections.add(c)
+                self.tracks[r].object_class = int(det_classes[c])
 
-        new_track_list = []
-        for idx, f in enumerate(self.tracks):
-            if idx not in matched_tracks:
-                f.no_update()
-            if not f.should_delete():
-                new_track_list.append(f)
-        self.tracks = new_track_list
+            new_track_list = []
+            for idx, f in enumerate(self.tracks):
+                if idx not in matched_tracks:
+                    f.no_update()
+                if not f.should_delete():
+                    new_track_list.append(f)
+            self.tracks = new_track_list
 
-        for j, z in enumerate(detections):
-            if j in matched_detections:
-                continue
-            f = Filter(z, int(det_classes[j]), self.next_id)
-            self.next_id += 1
-            self.tracks.append(f)
+            for j, z in enumerate(detections):
+                if j in matched_detections:
+                    continue
+                f = Filter(z, int(det_classes[j]), self.next_id)
+                self.next_id += 1
+                self.tracks.append(f)
 
-        positions   = np.array([f.position for f in self.tracks], dtype=np.float32)
-        velocities  = np.array([f.velocity for f in self.tracks], dtype=np.float32)
-        ages        = [f.age for f in self.tracks]
-        classes_out = [f.object_class for f in self.tracks]
-        ids         = [f.id for f in self.tracks]
+            positions   = np.array([f.position for f in self.tracks], dtype=np.float32)
+            velocities  = np.array([f.velocity for f in self.tracks], dtype=np.float32)
+            ages        = [f.age for f in self.tracks]
+            classes_out = [f.object_class for f in self.tracks]
+            ids         = [f.id for f in self.tracks]
 
-        return {
-            "tracks":          positions,
-            "trackVelocities": velocities,
-            "trackAge":        ages,
-            "trackClasses":    classes_out,
-            "trackIds":        ids
-        }
+            return {
+                "tracks":          positions,
+                "trackVelocities": velocities,
+                "trackAge":        ages,
+                "trackClasses":    classes_out,
+                "trackIds":        ids
+            }
 
 
 
