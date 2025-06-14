@@ -88,5 +88,12 @@ class Filter:
 
 
 class Tracker:
+
+        def __init__(self):
+        self.name = "Tracker"
+        self.tracks = []
+        self.next_id = 0
+
+
     pass
 
