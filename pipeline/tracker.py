@@ -124,6 +124,15 @@ class Filter:
         classes_out = [f.object_class for f in self.tracks]
         ids         = [f.id for f in self.tracks]
 
+        return {
+            "tracks":          positions,
+            "trackVelocities": velocities,
+            "trackAge":        ages,
+            "trackClasses":    classes_out,
+            "trackIds":        ids
+        }
+
+
 
 
 
