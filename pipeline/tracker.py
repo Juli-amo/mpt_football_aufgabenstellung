@@ -70,4 +70,8 @@ class Filter:
         def stop(self, data):
             pass
 
+        def _distance(self, p, q):
+            return np.linalg.norm(np.array(p) - np.array(q))
+
+
 
