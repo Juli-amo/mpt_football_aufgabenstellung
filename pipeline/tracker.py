@@ -92,6 +92,17 @@ class Filter:
             else:
                 cost = np.empty((0, 0), dtype=np.float32)
                 row_ind, col_ind = np.array([], dtype=int), np.array([], dtype=int)
+
+            matched_tracks = set()
+            matched_detections = set()
+            for r, c in zip(row_ind, col_ind):
+                if cost[r, c] >= 1e6:
+                    continue
+            self.tracks[r].update(detections[c])
+            matched_tracks.add(r)
+            matched_detections.add(c)
+            self.tracks[r].object_class = int(det_classes[c])
+
             
             pass
 
