@@ -118,6 +118,13 @@ class Filter:
             self.next_id += 1
             self.tracks.append(f)
 
+        positions   = np.array([f.position for f in self.tracks], dtype=np.float32)
+        velocities  = np.array([f.velocity for f in self.tracks], dtype=np.float32)
+        ages        = [f.age for f in self.tracks]
+        classes_out = [f.object_class for f in self.tracks]
+        ids         = [f.id for f in self.tracks]
+
+
 
 
             
