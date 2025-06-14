@@ -28,37 +28,6 @@ class Filter:
         self.missing_frames = 0 # → since how many frames is the track not detectable ?
         self.velocity = np.array([0.0, 0.0])  # → position change per frame |new postion - old position|
         
-<<<<<<< Updated upstream
-=======
-    
-    def update (self, z_new):  #if detection
-        self.last_position = self.position
-        self.position = z_new
-        self.velocity = np.array(self.position[:2]) - np.array(self.last_position[:2])
-                        #with numpy it is more effiecient for later calculations but it is exactly the same as: 
-                        #[self.position[0] - self.last_position[0], self.position[1] - self.last_position[1]]
-        self.missing_frames = 0
-        self.age += 1
-
-
-    def no_update (self):  #if no detection accured
-        new_position_predicted = [self.position[0]+self.velocity[0], #x and y change
-                                  self.position[1]+self.velocity[1],
-                                  self.position[2],                  #width and hight remain the same
-                                  self.position[3]
-                                  ]
-        self.last_position = self.position
-        self.position = new_position_predicted
-        self.missing_frames += 1
-        self.age += 1
-
-    def should_delete(self, max_missing_frames = 5): #returns True when self.missing_frames > max_missing_frames
-        if self.missing_frames > max_missing_frames:
-            return True
-        return False
-
-    
->>>>>>> Stashed changes
     
     def update (self, z_new):  #if detection
         self.last_position = self.position
@@ -87,13 +56,18 @@ class Filter:
         return False
 
 
-class Tracker:
+    class Tracker:
 
         def __init__(self):
-        self.name = "Tracker"
-        self.tracks = []
-        self.next_id = 0
+            self.name = "Tracker"
+            self.tracks = []
+            self.next_id = 0
 
+        def start(self, data):
+            self.tracks = []
+            self.next_id = 0
 
-    pass
+        def stop(self, data):
+            pass
+
 
