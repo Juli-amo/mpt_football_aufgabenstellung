@@ -23,11 +23,11 @@ class ShirtClassifier:
                 "teamClasses": []
             }
 
-        # Spieler extrahieren
+        #Spieler extrahieren
         player_colors = []
         player_indices = []
         for idx, (track, cls) in enumerate(zip(tracks, track_classes)):
-            if cls == 2:  # Spieler
+            if cls == 2:  #Spieler
                 x, y, w, h = track.astype(int)
                 x1, y1 = max(int(x - w//2), 0), max(int(y - h//2), 0)
                 x2, y2 = min(int(x + w//2), image.shape[1]-1), min(int(y + h//2), image.shape[0]-1)
@@ -45,11 +45,11 @@ class ShirtClassifier:
                 "teamClasses": team_classes
             }
 
-        # Simple 2-Means (numpy)
+        #2-Means (numpy)
         player_colors = np.array(player_colors)
-        # Initialisiere zufällig 2 Clusterzentren
+        #2 Clusterzentren
         c0, c1 = player_colors[0], player_colors[1]
-        for _ in range(10):  # 10 Iterationen reichen meist
+        for _ in range(10):  
             dists0 = np.linalg.norm(player_colors - c0, axis=1)
             dists1 = np.linalg.norm(player_colors - c1, axis=1)
             labels = (dists1 < dists0).astype(int)
@@ -57,7 +57,7 @@ class ShirtClassifier:
                 c0 = np.mean(player_colors[labels == 0], axis=0)
             if np.sum(labels == 1) > 0:
                 c1 = np.mean(player_colors[labels == 1], axis=0)
-        # Clusterzentren zu Tupel
+        #Clusterzentren zu Tupel
         teamA_color = tuple(map(int, c0))
         teamB_color = tuple(map(int, c1))
 
