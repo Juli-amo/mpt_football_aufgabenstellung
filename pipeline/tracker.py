@@ -50,6 +50,20 @@ class Filter:
         self.x = self.F @ self.x
         self.P = self.F @ self.P @ self.F.T + self.Q
 
+    def update(self, bbox):
+        # Update mit neuer Messung
+        x, y, w, h = bbox
+        cx = x + w / 2
+        cy = y + h / 2
+        z = np.array([[cx], [cy]])
+        y_residual = z - self.H @ self.x
+        S = self.H @ self.P @ self.H.T + self.R
+        K = self.P @ self.H.T @ np.linalg.inv(S)
+        self.x = self.x + K @ y_residual
+        I = np.eye(self.P.shape[0])
+        self.P = (I - K @ self.H) @ self.P
+
+
 class Tracker:
 
     def __init__(self):
