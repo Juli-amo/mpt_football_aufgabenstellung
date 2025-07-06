@@ -20,41 +20,30 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment
 
 class Filter:
-    def __init__(self, z, cls, track_id):
-        self.id = track_id
-        self.position = z # → [x, y, w, h]
-        self.last_position = self.position.copy()
-        self.object_class = cls # → (ball: 0, player: 2,..)
-        self.age = 1            # → since how many frames does the track exist ?
-        self.missing_frames = 0 # → since how many frames is the track not detectable ?
-        self.velocity = np.array([0.0, 0.0])  # → position change per frame |new postion - old position|
-        
-    
-    def update (self, z_new):  #if detection
-        self.last_position = self.position
-        self.position = z_new
-        self.velocity = np.array(self.position[:2]) - np.array(self.last_position[:2])
-                        #with numpy it is more effiecient for later calculations but it is exactly the same as: 
-                        #[self.position[0] - self.last_position[0], self.position[1] - self.last_position[1]]
-        self.missing_frames = 0
-        self.age += 1
-
-
-    def no_update (self):  #if no detection accured
-        new_position_predicted = [self.position[0]+self.velocity[0], #x and y change
-                                  self.position[1]+self.velocity[1],
-                                  self.position[2],                  #width and hight remain the same
-                                  self.position[3]
-                                  ]
-        self.last_position = self.position
-        self.position = new_position_predicted
-        self.missing_frames += 1
-        self.age += 1
-
-    def should_delete(self, max_missing_frames = 5): #returns True when self.missing_frames > max_missing_frames
-        if self.missing_frames > max_missing_frames:
-            return True
-        return False
+    def __init__(self, bbox, dt=1.0, process_noise=1e-2, measurement_noise=1e-1):
+        # bbox: [x, y, w, h]
+        # Initialisiere Zustandsvektor [cx, cy, vx, vy]
+        x, y, w, h = bbox
+        cx = x + w / 2
+        cy = y + h / 2
+        self.x = np.array([[cx], [cy], [0.], [0.]])
+        # Kovarianz
+        self.P = np.eye(4) * 1.0
+        # Zustandsübergangsmodell
+        self.F = np.array([
+            [1, 0, dt, 0],
+            [0, 1, 0, dt],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1]
+        ])
+        # Beobachtungsmodell: nur Position
+        self.H = np.array([
+            [1, 0, 0, 0],
+            [0, 1, 0, 0]
+        ])
+        # Prozess- und Messrauschen
+        self.Q = np.eye(4) * process_noise
+        self.R = np.eye(2) * measurement_noise
 
 
 class Tracker:
