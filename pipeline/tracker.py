@@ -67,78 +67,96 @@ class Filter:
         # Gibt aktuellen Mittelpunkt und Geschwindigkeit zurück
         return self.x.flatten()  # [cx, cy, vx, vy]
 
-
 class Tracker:
+    def __init__(self, max_skipped=5, max_trace_length=10, dist_thresh=50):
+        self.next_track_id = 0
+        self.tracks = {}  # tid: {'filter', 'trace', 'skipped', 'age', 'prev_pos', 'class'}
+        self.max_skipped = max_skipped
+        self.max_trace_length = max_trace_length
+        self.dist_thresh = dist_thresh
 
-    def __init__(self):
-        self.name = "Tracker"
-        self.tracks = []
-        self.next_id = 0
-
-    def start(self, data):
-        self.tracks = []
-        self.next_id = 0
-
-    def stop(self, data):
-        pass
-
-    def _distance(self, p, q):
-        return np.linalg.norm(np.array(p) - np.array(q))
-        
     def step(self, data):
-        detections = data.get("detections", np.empty((0, 4), np.float32))
-        det_classes = data.get("classes", np.empty((0,), np.int32))
-        N = len(self.tracks)
-        M = len(detections)
-        MAX_DIST = 300.0
+        detections = data.get("detections", [])
+        det_classes = data.get("classes", []) 
 
-        if N and M:
-            cost = np.zeros((N, M), dtype=np.float32)
-            for i, f in enumerate(self.tracks):
-                p = f.position[:2]
-                for j, z in enumerate(detections):
-                    q = z[:2]
-                    dist = self._distance(p, q)
-                    cost[i, j] = dist if dist < MAX_DIST else 1e6
-            row_ind, col_ind = linear_sum_assignment(cost)
-        else:
-            cost = np.empty((0, 0), dtype=np.float32)
-            row_ind, col_ind = np.array([], dtype=int), np.array([], dtype=int)
+        # das ist die Vorhersage
+        for tid, tr in list(self.tracks.items()):
+            tr['filter'].predict()
+            tr['skipped'] += 1
+            tr['age'] += 1
 
-        matched_tracks = set()
-        matched_detections = set()
-        for r, c in zip(row_ind, col_ind):
-            if cost[r, c] >= 1e6:
-                continue
-            self.tracks[r].update(detections[c])
-            matched_tracks.add(r)
-            matched_detections.add(c)
-            self.tracks[r].object_class = int(det_classes[c])
+        # Hier passiert die Zuordnung
+        assignments = []
+        unassigned = []
+        for i, det in enumerate(detections):
+            best_tid, best_dist = None, float('inf')
+            x, y, w, h = det
+            cx_det = x + w / 2
+            cy_det = y + h / 2
+            for tid, tr in self.tracks.items():
+                cx_pred, cy_pred, _, _ = tr['filter'].get_state()
+                dist = np.hypot(cx_det - cx_pred, cy_det - cy_pred)
+                if dist < best_dist:
+                    best_dist, best_tid = dist, tid
+            if best_dist < self.dist_thresh and best_tid is not None:
+                assignments.append((best_tid, i, det))
+            else:
+                unassigned.append((i, det))
 
-        new_track_list = []
-        for idx, f in enumerate(self.tracks):
-            if idx not in matched_tracks:
-                f.no_update()
-            if not f.should_delete():
-                new_track_list.append(f)
-        self.tracks = new_track_list
+        # hier werden die zugeorndeten tracks geupdated
+        matched_ids = set()
+        for tid, i, det in assignments:
+            tr = self.tracks[tid]
+            prev = tr['filter'].get_state()[:2]
+            tr['filter'].update(det)
+            cx, cy, _, _ = tr['filter'].get_state()
+            tr['trace'].append((cx, cy))
+            if len(tr['trace']) > self.max_trace_length:
+                tr['trace'].pop(0)
+            tr['skipped'] = 0
+            tr['prev_pos'] = prev
+            tr['object_class'] = int(det_classes[i]) if i < len(det_classes) else -1
+            matched_ids.add(tid)
 
-        for j, z in enumerate(detections):
-            if j in matched_detections:
-                continue
-            f = Filter(z, int(det_classes[j]), self.next_id)
-            self.next_id += 1
-            self.tracks.append(f)
+        # neue tracks für nicht zugeordnete
+        for i, det in unassigned:
+            filt = Filter(det)
+            cx, cy, _, _ = filt.get_state()
+            self.tracks[self.next_track_id] = {
+                'filter': filt,
+                'trace': [(cx, cy)],
+                'skipped': 0,
+                'age': 1,
+                'prev_pos': (cx, cy),
+                'object_class': int(det_classes[i]) if i < len(det_classes) else -1
+            }
+            self.next_track_id += 1
 
-        positions   = np.array([f.position for f in self.tracks], dtype=np.float32)
-        velocities  = np.array([f.velocity for f in self.tracks], dtype=np.float32)
-        ages        = [f.age for f in self.tracks]
-        classes_out = [f.object_class for f in self.tracks]
-        ids         = [f.id for f in self.tracks]
+        # vorheriger zustand entfernt 
+        for tid in list(self.tracks.keys()):
+            if self.tracks[tid]['skipped'] > self.max_skipped:
+                del self.tracks[tid]
+
+        positions = []
+        velocities = []
+        ages = []
+        classes_out = []
+        ids = []
+
+        for tid, tr in self.tracks.items():
+            cx, cy, _, _ = tr['filter'].get_state()
+            px, py = tr['prev_pos']
+            vx = cx - px
+            vy = cy - py
+            positions.append([cx, cy])
+            velocities.append([vx, vy])
+            ages.append(tr['age'])
+            classes_out.append(tr['object_class'])
+            ids.append(tid)
 
         return {
-            "tracks":          positions,
-            "trackVelocities": velocities,
+            "tracks":          np.array(positions, dtype=np.float32),
+            "trackVelocities": np.array(velocities, dtype=np.float32),
             "trackAge":        ages,
             "trackClasses":    classes_out,
             "trackIds":        ids
