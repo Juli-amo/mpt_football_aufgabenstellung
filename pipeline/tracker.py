@@ -63,6 +63,10 @@ class Filter:
         I = np.eye(self.P.shape[0])
         self.P = (I - K @ self.H) @ self.P
 
+    def get_state(self):
+        # Gibt aktuellen Mittelpunkt und Geschwindigkeit zurück
+        return self.x.flatten()  # [cx, cy, vx, vy]
+
 
 class Tracker:
 
