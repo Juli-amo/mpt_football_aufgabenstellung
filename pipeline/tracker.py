@@ -45,6 +45,10 @@ class Filter:
         self.Q = np.eye(4) * process_noise
         self.R = np.eye(2) * measurement_noise
 
+    def predict(self):
+        # Vorhersagezustand
+        self.x = self.F @ self.x
+        self.P = self.F @ self.P @ self.F.T + self.Q
 
 class Tracker:
 
