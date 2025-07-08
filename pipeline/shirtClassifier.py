@@ -2,20 +2,54 @@ import numpy as np
 import cv2
 
 class ShirtClassifier:
-    def __init__(self):
+    def __init__(self, update_rate=0.1, use_hsv=True):
+        #Name identifier for the classifier
         self.name = "Shirt Classifier"
+        #Flag indicating whether initial team colors have been determined
+        self.initialized = False
+        #Cached team colors (as HSV or BGR arrays) for team A and B
+        self.teamA_color = None
+        self.teamB_color = None
+        #Rate at which to update the running average of team colors
+        self.update_rate = update_rate  #running average rate
+        #Flag to choose color space: HSV for robustness to lighting, else BGR
+        self.use_hsv = use_hsv
 
     def start(self, data):
-        pass
+        """
+        Called at the beginning of a new video/run: resets internal state.
+        """
+        self.initialized = False
+        self.teamA_color = None
+        self.teamB_color = None
 
     def stop(self, data):
+        """
+        Called at the end of processing. Currently unused.
+        """
         pass
 
     def step(self, data):
+        """
+        Main per-frame processing method. Returns team colors and assignments.
+
+        Args:
+            data (dict): contains keys:
+                - 'image': current frame (H x W x 3 BGR image)
+                - 'tracks': list of bounding boxes [x, y, w, h]
+                - 'trackClasses': list of class labels per track (2 = player)
+
+        Returns:
+            dict with:
+                - 'teamAColor', 'teamBColor': output colors as BGR tuples
+                - 'teamClasses': list of 0/1/2 assignments per track
+        """
+        #Retrieve input data
         image = data.get("image")
         tracks = data.get("tracks", [])
         track_classes = data.get("trackClasses", [])
 
+        #If no players detected, return default zeros
         if len(tracks) == 0 or len(track_classes) == 0:
             return {
                 "teamAColor": (0, 0, 0),
@@ -23,61 +57,81 @@ class ShirtClassifier:
                 "teamClasses": []
             }
 
-        #Spieler extrahieren
-        player_colors = []
-        player_indices = []
+        #Extract mean colors from player crops
+        colors = []     #list of mean color vectors
+        indices = []    #corresponding indices in original track list
         for idx, (track, cls) in enumerate(zip(tracks, track_classes)):
-            if cls == 2:  #Spieler
+            #Only process if this track is classified as a player (class 2)
+            if cls == 2:
                 x, y, w, h = track.astype(int)
-                x1, y1 = max(int(x - w//2), 0), max(int(y - h//2), 0)
-                x2, y2 = min(int(x + w//2), image.shape[1]-1), min(int(y + h//2), image.shape[0]-1)
+                x1, y1 = max(x - w // 2, 0), max(y - h // 2, 0)
+                x2, y2 = min(x + w // 2, image.shape[1] - 1), min(y + h // 2, image.shape[0] - 1)
                 crop = image[y1:y2, x1:x2]
                 if crop.size > 0:
-                    mean_color = np.mean(crop.reshape(-1, 3), axis=0)
-                    player_colors.append(mean_color)
-                    player_indices.append(idx)
+                    if self.use_hsv:
+                        hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
+                        mean = np.mean(hsv.reshape(-1, 3), axis=0)
+                    else:
+                        mean = np.mean(crop.reshape(-1, 3), axis=0)
+                    colors.append(mean)
+                    indices.append(idx)
 
-        if len(player_colors) < 2:
+        # not enough data to initialize
+        if len(colors) < 2:
+            # fallback: assign no teams
             team_classes = [0 if c != 2 else 1 for c in track_classes]
             return {
-                "teamAColor": (0, 0, 0),
-                "teamBColor": (0, 0, 0),
+                "teamAColor": tuple(int(c) for c in (self.teamA_color or (0,0,0))),
+                "teamBColor": tuple(int(c) for c in (self.teamB_color or (0,0,0))),
                 "teamClasses": team_classes
             }
 
-        #2-Means (numpy)
-        player_colors = np.array(player_colors)
-        #2 Clusterzentren
-        c0, c1 = player_colors[0], player_colors[1]
-        for _ in range(10):  
-            dists0 = np.linalg.norm(player_colors - c0, axis=1)
-            dists1 = np.linalg.norm(player_colors - c1, axis=1)
-            labels = (dists1 < dists0).astype(int)
-            if np.sum(labels == 0) > 0:
-                c0 = np.mean(player_colors[labels == 0], axis=0)
-            if np.sum(labels == 1) > 0:
-                c1 = np.mean(player_colors[labels == 1], axis=0)
-        #Clusterzentren zu Tupel
-        teamA_color = tuple(map(int, c0))
-        teamB_color = tuple(map(int, c1))
+        colors = np.array(colors)
 
-        # team_classes = []
-        # color_idx = 0
-        # for cls in track_classes:
-        #     if cls == 2:
-        #         team = labels[color_idx]
-        #         team_classes.append(1 if team == 0 else 2)
-        #         color_idx += 1
-        #     else:
-        #         team_classes.append(0)
+        # initialization on first frame
+        if not self.initialized:
+            # simple 2-means clustering
+            c0, c1 = colors[0], colors[1]
+            for _ in range(10):
+                d0 = np.linalg.norm(colors - c0, axis=1)
+                d1 = np.linalg.norm(colors - c1, axis=1)
+                lbls = (d1 < d0).astype(int)
+                if np.any(lbls == 0): c0 = np.mean(colors[lbls == 0], axis=0)
+                if np.any(lbls == 1): c1 = np.mean(colors[lbls == 1], axis=0)
+            # set team colors
+            self.teamA_color = c0
+            self.teamB_color = c1
+            self.initialized = True
+            labels = lbls
+        else:
+            # classify by nearest to cached team colors
+            dA = np.linalg.norm(colors - self.teamA_color, axis=1)
+            dB = np.linalg.norm(colors - self.teamB_color, axis=1)
+            labels = (dB < dA).astype(int)
+            # update running average to adapt lighting
+            newA = np.mean(colors[labels == 0], axis=0) if np.any(labels==0) else None
+            newB = np.mean(colors[labels == 1], axis=0) if np.any(labels==1) else None
+            if newA is not None:
+                self.teamA_color = (1 - self.update_rate) * self.teamA_color + self.update_rate * newA
+            if newB is not None:
+                self.teamB_color = (1 - self.update_rate) * self.teamB_color + self.update_rate * newB
+
+        # assign classes
         team_classes = [0] * len(track_classes)
-        for crop_idx, orig_idx in enumerate(player_indices):
-            lbl = labels[crop_idx]
-            team_classes[orig_idx] = 1 if lbl == 0 else 2
-            
-            
+        for cidx, orig in enumerate(indices):
+            if labels[cidx] == 0:
+                team_classes[orig] = 1
+            else:
+                team_classes[orig] = 2
+
+        # convert team colors back to BGR ints for output
+        outA = tuple(int(c) for c in (cv2.cvtColor(np.uint8([[self.teamA_color]]),
+                                                   cv2.COLOR_HSV2BGR)[0,0] if self.use_hsv else self.teamA_color))
+        outB = tuple(int(c) for c in (cv2.cvtColor(np.uint8([[self.teamB_color]]),
+                                                   cv2.COLOR_HSV2BGR)[0,0] if self.use_hsv else self.teamB_color))
+
         return {
-            "teamAColor": teamA_color,
-            "teamBColor": teamB_color,
+            "teamAColor": outA,
+            "teamBColor": outB,
             "teamClasses": team_classes
         }
