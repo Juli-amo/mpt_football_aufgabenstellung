@@ -61,16 +61,21 @@ class ShirtClassifier:
         teamA_color = tuple(map(int, c0))
         teamB_color = tuple(map(int, c1))
 
-        team_classes = []
-        color_idx = 0
-        for cls in track_classes:
-            if cls == 2:
-                team = labels[color_idx]
-                team_classes.append(1 if team == 0 else 2)
-                color_idx += 1
-            else:
-                team_classes.append(0)
-
+        # team_classes = []
+        # color_idx = 0
+        # for cls in track_classes:
+        #     if cls == 2:
+        #         team = labels[color_idx]
+        #         team_classes.append(1 if team == 0 else 2)
+        #         color_idx += 1
+        #     else:
+        #         team_classes.append(0)
+        team_classes = [0] * len(track_classes)
+        for crop_idx, orig_idx in enumerate(player_indices):
+            lbl = labels[crop_idx]
+            team_classes[orig_idx] = 1 if lbl == 0 else 2
+            
+            
         return {
             "teamAColor": teamA_color,
             "teamBColor": teamB_color,
