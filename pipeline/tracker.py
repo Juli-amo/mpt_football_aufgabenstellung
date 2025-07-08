@@ -14,11 +14,13 @@ class Tracker:
         self.name = "Tracker" # Do not change the name of the module as otherwise recording replay would break!
 
     def start(self, data):
-        # TODO: Implement start up procedure of the module
-        pass
+        """
+        Called once at the beginning of processing. Reset internal track list and ID counter.
+        """
+        self.tracks = []
+        self.next_id = 0
 
     def stop(self, data):
-        # TODO: Implement shut down procedure of the module
         pass
 
     def step(self, data):
