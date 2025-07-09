@@ -1,3 +1,4 @@
+import numpy as np
 class ShirtClassifier:
     def __init__(self):
         self.name = "Shirt Classifier" # Do not change the name of the module as otherwise recording replay would break!
@@ -9,6 +10,7 @@ class ShirtClassifier:
     def stop(self, data):
         # TODO: Implement shut down procedure of the module
         pass
+
 
     def step(self, data):
         # TODO: Implement processing of a current frame list
@@ -22,6 +24,24 @@ class ShirtClassifier:
         #           0: Team not decided or not a player (e.g. ball, goal keeper, referee)
         #           1: Player belongs to team A
         #           2: Player belongs to team B
-        return { "teamAColor": None,
-                 "teamBColor": None,
-                 "teamClasses": None }
+        
+        # DUMMY VARIABLES FOR TESTING WEIL Display.drawTracks() DAVON AUS GEHT DASS DIESE IMMER EXISTIEREN  (noch to be implemented in ShirtClassifier)
+
+
+        # Placeholder implementation until full logic is provided
+        # Retrieve current tracks to determine how many entries to return
+        tracks = data.get("tracks", np.empty((0, 4), np.float32))
+        num_tracks = len(tracks)
+
+        # Default team assignments: all unassigned (0)
+        team_classes = [0] * num_tracks
+
+        # Dummy team colors in BGR format
+        team_a_color = (0, 0, 255)    # red
+        team_b_color = (255, 0, 0)    # blue
+
+        return {
+            "teamAColor": team_a_color,
+            "teamBColor": team_b_color,
+            "teamClasses": team_classes
+        }
