@@ -12,24 +12,24 @@
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
+
 class Filter:
     def __init__(self, z, cls, track_id):
         # I initialize the main properties of the filter here.
-        self.id = track_id                     # unique track identifier
-        self.object_class = cls                # detected object class
-        self.age = 1                           # how many frames this track has existed
-        self.missing_frames = 0                # count of consecutive frames without update
+        self.id = track_id  # unique track identifier
+        self.object_class = cls  # detected object class
+        self.age = 1  # how many frames this track has existed
+        self.missing_frames = 0  # count of consecutive frames without update
 
         # State vector [x, y, vx, vy]hochT; we start with zero velocity
         self.X = np.array([[z[0]], [z[1]], [0.0], [0.0]])
         # Covariance matrix: high uncertainty in velocity initially
-        self.P = np.diag([10.0, 10.0, 50.0, 50.0]) 
+        self.P = np.diag([10.0, 10.0, 50.0, 50.0])
 
         # Measurement noise covariance (pixel-level noise)
         self.R = np.diag([5.0, 5.0])
         # Measurement matrix: we only observe x and y
-        self.H = np.array([[1, 0, 0, 0],
-                           [0, 1, 0, 0]])
+        self.H = np.array([[1, 0, 0, 0], [0, 1, 0, 0]])
         # Process noise covariance: small for position, larger for velocity
         self.Q = np.diag([0.01, 0.01, 0.5, 0.5])
 
@@ -37,16 +37,18 @@ class Filter:
         self.width = z[2]
         self.height = z[3]
         # Keep last measurement to initialize velocity later
-        self.last_z = np.array([z[0], z[1]])  
+        self.last_z = np.array([z[0], z[1]])
 
     def predict(self, dt=1.0):
         # Predict next state using constant velocity model
-        F = np.array([
-            [1.0, 0.0, dt,  0.0],
-            [0.0, 1.0, 0.0, dt ],
-            [0.0, 0.0, 1.0, 0.0],
-            [0.0, 0.0, 0.0, 1.0]
-        ])
+        F = np.array(
+            [
+                [1.0, 0.0, dt, 0.0],
+                [0.0, 1.0, 0.0, dt],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ]
+        )
         # State prediction
         self.X = F @ self.X
         # Covariance prediction
@@ -102,8 +104,9 @@ class Filter:
     @property
     def position(self):
         # Return current [x, y, width, height]
-        return np.array([self.X[0, 0], self.X[1, 0], self.width, self.height],
-                        dtype=np.float32)
+        return np.array(
+            [self.X[0, 0], self.X[1, 0], self.width, self.height], dtype=np.float32
+        )
 
     @property
     def velocity(self):
@@ -140,8 +143,8 @@ class Tracker:
         det_classes = data.get("classes", np.empty((0,), np.int32))
         N = len(self.tracks)
         M = len(detections)
-        gating_threshold = 9.21   # chi-square 2DOF 95% limit
-        large_cost = 1e6          # cost for impossible assignments
+        gating_threshold = 9.21  # chi-square 2DOF 95% limit
+        large_cost = 1e6  # cost for impossible assignments
 
         # 1. Predict stage
         for f in self.tracks:
@@ -201,5 +204,5 @@ class Tracker:
             "trackVelocities": velocities,
             "trackAge": ages,
             "trackClasses": classes_out,
-            "trackIds": ids
+            "trackIds": ids,
         }
