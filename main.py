@@ -41,5 +41,6 @@ engine = Engine(
     "testout": int
   })
 
-data = { "video": 'videos/2.mp4' }
+data = { "video": 'videos/2.mp4',
+         "yolo_model_path": "modules/yolov8m-football.pt"}
 signals = engine.run(data)
