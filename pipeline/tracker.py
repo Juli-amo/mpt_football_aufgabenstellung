@@ -121,6 +121,7 @@ class Tracker:
         self.tracks = []
         self.next_id = 0
 
+
     def start(self, data=None):
         # Reset tracker state
         self.tracks = []
@@ -128,6 +129,7 @@ class Tracker:
 
     def stop(self, data=None):
         # No special cleanup needed here
+
         pass
 
     def step(self, data, dt=1.0):
@@ -200,9 +202,11 @@ class Tracker:
         ids = [f.id for f in self.tracks]
 
         return {
+
             "tracks": positions,
             "trackVelocities": velocities,
             "trackAge": ages,
             "trackClasses": classes_out,
             "trackIds": ids,
+
         }

@@ -4,10 +4,15 @@ import numpy as np
 class Detector:
     def __init__(self):
         self.name = "Detector" # Do not change the name of the module as otherwise recording replay would break!
-        self.model = YOLO(r"C:\Users\Asus Zenbook\OneDrive\Dokumente\GITHUB\mpt_football_aufgabenstellung\modules\yolov8m-football.pt") 
+
+        self.model = None
+
 
     def start(self, data):
-        pass
+        model_path = data.get("yolo_model_path")
+        if model_path is None:
+            raise ValueError("YOLO model path not specified in data dictionary.")
+        self.model = YOLO(model_path)
 
     def stop(self, data):
         pass

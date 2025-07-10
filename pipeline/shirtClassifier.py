@@ -1,6 +1,8 @@
 import numpy as np
+
 import cv2
 from sklearn.decomposition import PCA
+
 
 class ShirtClassifier:
     def __init__(self, update_rate=0.1, use_lab=True, apply_pca=True, pca_components=2):
@@ -43,6 +45,7 @@ class ShirtClassifier:
 
 
     def step(self, data):
+
         """
         Main per-frame processing method. Returns team colors and assignments.
 
@@ -181,3 +184,4 @@ class ShirtClassifier:
             "teamBColor": tuple(int(c) for c in outB),
             "teamClasses": team_classes,
         }
+
