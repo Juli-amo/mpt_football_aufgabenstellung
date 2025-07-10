@@ -1,11 +1,13 @@
-import numpy as np
 class ShirtClassifier:
     def __init__(self):
         self.name = "Shirt Classifier" # Do not change the name of the module as otherwise recording replay would break!
+        self.teamA_color = None
+        self.teamB_color = None
+        self.initialized = False
 
     def start(self, data):
-        # TODO: Implement start up procedure of the module
-        pass
+        self.initialized = False 
+        #pass
 
     def stop(self, data):
         # TODO: Implement shut down procedure of the module
@@ -13,7 +15,24 @@ class ShirtClassifier:
 
 
     def step(self, data):
-        # TODO: Implement processing of a current frame list
+        image = data["image"]
+        tracks = data["tracks"]
+        track_classes = data.get("trackClasses", [])
+
+        
+        
+        if len(tracks) == 0 or len(track_classes) == 0:
+                return {
+                  "teamAColor": (0, 0, 0),
+                  "teamBColor": (0, 0, 0),
+                  "teamClasses": []
+              }
+                
+                
+                
+                
+                
+# TODO: Implement processing of a current frame list
         # The task of the shirt classifier module is to identify the two teams based on their shirt color and to assign each player to one of the two teams
 
         # Note: You can access data["image"] and data["tracks"] to receive the current image as well as the current track list
@@ -25,23 +44,6 @@ class ShirtClassifier:
         #           1: Player belongs to team A
         #           2: Player belongs to team B
         
-        # DUMMY VARIABLES FOR TESTING WEIL Display.drawTracks() DAVON AUS GEHT DASS DIESE IMMER EXISTIEREN  (noch to be implemented in ShirtClassifier)
-
-
-        # Placeholder implementation until full logic is provided
-        # Retrieve current tracks to determine how many entries to return
-        tracks = data.get("tracks", np.empty((0, 4), np.float32))
-        num_tracks = len(tracks)
-
-        # Default team assignments: all unassigned (0)
-        team_classes = [0] * num_tracks
-
-        # Dummy team colors in BGR format
-        team_a_color = (0, 0, 255)    # red
-        team_b_color = (255, 0, 0)    # blue
-
-        return {
-            "teamAColor": team_a_color,
-            "teamBColor": team_b_color,
-            "teamClasses": team_classes
-        }
+        return { "teamAColor": None,
+                 "teamBColor": None,
+                 "teamClasses": None }

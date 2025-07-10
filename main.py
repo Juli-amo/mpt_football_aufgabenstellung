@@ -14,7 +14,7 @@ engine = Engine(
     recordReplayMultiplex(Detector(), RRPlexMode.REPLAY),
     recordReplayMultiplex(OpticalFlow(), RRPlexMode.REPLAY),
     recordReplayMultiplex(Tracker(), RRPlexMode.REPLAY),
-    recordReplayMultiplex(ShirtClassifier(), RRPlexMode.REPLAY),
+    recordReplayMultiplex(ShirtClassifier(), RRPlexMode.BYPASS),
     Display(historyBufferSize=1000)
     ],
   signals={
@@ -33,6 +33,5 @@ engine = Engine(
     "testout": int
   })
 
-data = { "video": 'videos/1.mp4' }
+data = { "video": 'videos/12.mp4' }
 signals = engine.run(data)
-
