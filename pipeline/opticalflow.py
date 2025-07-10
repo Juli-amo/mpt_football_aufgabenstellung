@@ -1,3 +1,4 @@
+
 import cv2
 import numpy as np
 
@@ -7,6 +8,7 @@ class OpticalFlow:
         self.name = "Optical Flow"  # Do not change the name of the module as otherwise recording replay would break!
         self.prev_gray = None  # Previous grayscale image
         self.prev_features = None  # Previous features for tracking
+
 
     def start(self, data):
         """Initialize the module at the beginning - unnecessary for this module, but required for interface consistency."""
@@ -19,6 +21,7 @@ class OpticalFlow:
         self.prev_features = None
 
     def step(self, data):
+
         """Process the current frame and calculate optical flow."""
 
         # Get current image
