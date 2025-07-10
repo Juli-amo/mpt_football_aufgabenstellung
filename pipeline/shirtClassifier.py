@@ -1,6 +1,3 @@
-import numpy as np
-import cv2
-
 class ShirtClassifier:
     def __init__(self):
         self.name = "Shirt Classifier" # Do not change the name of the module as otherwise recording replay would break!
@@ -15,6 +12,7 @@ class ShirtClassifier:
     def stop(self, data):
         # TODO: Implement shut down procedure of the module
         pass
+
 
     def step(self, data):
         image = data["image"]
@@ -49,4 +47,3 @@ class ShirtClassifier:
         return { "teamAColor": None,
                  "teamBColor": None,
                  "teamClasses": None }
-        
