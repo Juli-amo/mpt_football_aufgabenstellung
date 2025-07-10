@@ -4,7 +4,15 @@ from pipeline.detector import Detector
 from pipeline.opticalflow import OpticalFlow
 from pipeline.tracker import Tracker
 from pipeline.shirtClassifier import ShirtClassifier
+import signal
+import sys
 
+def signal_handler(sig, frame):
+    print("\n⇨ Abbruch durch Benutzer, beende Programm.")
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
+        
 recordMode = RRPlexMode.BYPASS
 
 shape = (960, 540)
@@ -33,5 +41,5 @@ engine = Engine(
     "testout": int
   })
 
-data = { "video": 'videos/12.mp4' }
+data = { "video": 'videos/2.mp4' }
 signals = engine.run(data)
